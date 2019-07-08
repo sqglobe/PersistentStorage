@@ -14,7 +14,7 @@ class TransparentContainerElementWrapper : public ContainerElementWrapper<C> {
 
  public:
   typename C::element* operator->() { return &(this->mElement); }
-  typename C::const_element const* operator->() const {
+  typename C::element const* operator->() const {
     return &(this->mElement);
   }
 };

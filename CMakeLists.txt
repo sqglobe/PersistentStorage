@@ -49,7 +49,7 @@ set_target_properties(PersistentStorage PROPERTIES VERSION ${PROJECT_VERSION})
 
 set_target_properties(PersistentStorage PROPERTIES SOVERSION 1)
 
-target_include_directories(PersistentStorage PRIVATE  ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(PersistentStorage PRIVATE  ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 

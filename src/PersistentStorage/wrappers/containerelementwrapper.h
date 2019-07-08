@@ -101,7 +101,7 @@ bool ContainerElementWrapper<C>::save() {
 template <typename C>
 bool ContainerElementWrapper<C>::remove() {
   try {
-    return mContainer->remove(mElement);
+    return mContainer->remove(get_id(mElement));
   } catch (const std::exception&) {
     mStateOk = false;
   }

@@ -47,6 +47,13 @@
  *     static size_t size(const std::shared_ptr<Contact>& element);
  *     static void store(void* dest, const std::shared_ptr<Contact>& elem);
  *  };
+ *
+ * Пример Watcher:
+ * class TestWatcher{
+ *   void elementAdded(const Element &);
+ *   void elementRemoved(const Element &);
+ *   void elementUpdated(const Element &);
+ * };
  */
 
 template <typename K, typename V>
@@ -55,32 +62,78 @@ struct DefaultDeleter {
     if (auto iter = elements.find(id); iter != elements.end()) {
       auto elem = *iter;
       elements.erase(iter);
-      return {elem};
+      return {elem.second};
     }
     return {};
   }
 };
 
+class DefaultTransactionManager{
+public:
+    DefaultTransactionManager(Db *db);
+    ~DefaultTransactionManager();
+    void commit();
+    void abort();
+private:
+    Db *mDb;
+    DbTxn *mTxn;
+};
+
+DefaultTransactionManager::DefaultTransactionManager(Db *db): mDb(db), mTxn(nullptr)
+{
+    if(mDb){
+        mTxn = dbstl::begin_txn(DB_TXN_SYNC| DB_TXN_WAIT, db->get_env());
+    }
+}
+
+DefaultTransactionManager::~DefaultTransactionManager()
+{
+    if( mDb && mTxn ){
+       dbstl::abort_txn(mDb->get_env(), mTxn);
+    }
+}
+
+void DefaultTransactionManager::commit()
+{
+    if(mDb && mTxn){
+        dbstl::commit_txn(mDb->get_env(), mTxn);
+        mDb = nullptr;
+        mTxn = nullptr;
+    }
+}
+
+void DefaultTransactionManager::abort()
+{
+    if(mDb && mTxn){
+        dbstl::abort_txn(mDb->get_env(), mTxn);
+        mDb = nullptr;
+        mTxn = nullptr;
+    }
+
+}
+
 template <
     typename Element,
     typename Marshaller,
     typename Watcher,
+    typename TxManager = DefaultTransactionManager,
     typename Deleter =
         DefaultDeleter<decltype(get_id(std::declval<Element>())), Element>>
 class Store : public std::enable_shared_from_this<
-                  Store<Element, Marshaller, Watcher, Deleter>>,
+                  Store<Element, Marshaller, Watcher, TxManager, Deleter>>,
               public Watcher {
  public:
   using element = Element;
   using watcher_type = Watcher;
   using key = decltype(get_id(std::declval<Element>()));
   using wrapper_type = TransparentContainerElementWrapper<
-      Store<Element, Marshaller, Watcher, Deleter>>;
+      Store<Element, Marshaller, Watcher, TxManager, Deleter>>;
+  using TransactionManager = TxManager;
 
  public:
-  Store(Db* db, ENV* env, Deleter&& deleter = Deleter());
+  Store(Db* db, DbEnv *env, Deleter&& deleter = Deleter());
   explicit Store(Db* db, Deleter&& deleter = Deleter());
-  Store(Deleter&& deleter = Deleter());
+  explicit Store(Deleter&& deleter = Deleter());
 
  public:
   /**
@@ -135,8 +188,10 @@ class Store : public std::enable_shared_from_this<
   element find(std::function<bool(const element&)> is) const;
 
  protected:
-  dbstl::db_map<key, element> mElements;
+  mutable dbstl::db_map<key, element> mElements;
+  mutable Db *mDb;
   Deleter mDeleter;
+
 };
 
 /*-----------------------------------------------------------------------------------------------------*/
@@ -144,12 +199,14 @@ class Store : public std::enable_shared_from_this<
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-Store<Element, Marshaller, Watcher, Deleter>::Store(Db* db,
-                                                    ENV* env,
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::Store(Db* db,
+                                                    DbEnv* env,
                                                     Deleter&& deleter) :
     mElements(db, env),
-    mDeleter(std::forward(deleter)) {
+    mDb(db),
+    mDeleter(std::forward<Deleter>(deleter)) {
   auto inst = dbstl::DbstlElemTraits<Element>::instance();
   inst->set_size_function(&Marshaller::size);
   inst->set_copy_function(&Marshaller::store);
@@ -159,38 +216,45 @@ Store<Element, Marshaller, Watcher, Deleter>::Store(Db* db,
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-Store<Element, Marshaller, Watcher, Deleter>::Store(Db* db, Deleter&& deleter) :
-    Store(db, db->get_ENV(), std::forward(deleter)) {}
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::Store(Db* db, Deleter&& deleter) :
+    Store(db, db->get_env(), std::forward<Deleter>(deleter)) {}
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-Store<Element, Marshaller, Watcher, Deleter>::Store(Deleter&& deleter) :
-    Store(nullptr, nullptr, std::forward(deleter)) {}
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::Store(Deleter&& deleter) :
+    Store(nullptr, nullptr, std::forward<Deleter>(deleter)) {}
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, Deleter>::add(
+bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::add(
     const Store::element& elem) {
+  TransactionManager manager(mDb);
   if (auto [it, res] = mElements.insert(std::make_pair(get_id(elem), elem));
       res) {
+    manager.commit();
     watcher_type::elementAdded(elem);
     return true;
   }
-
   return false;
 }
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, Deleter>::remove(const key& id) {
+bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::remove(const key& id) {
+  TransactionManager manager(mDb);
   if (auto res = mDeleter(mElements, id); res) {
+    manager.commit();
     watcher_type::elementRemoved(*res);
     return true;
   }
@@ -200,11 +264,14 @@ bool Store<Element, Marshaller, Watcher, Deleter>::remove(const key& id) {
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, Deleter>::strictUpdate(
+bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::strictUpdate(
     const Store::element& elem) {
+  TransactionManager manager(mDb);
   if (auto iter = mElements.find(get_id(elem)); iter != mElements.end()) {
-    iter = elem;
+    manager.commit();
+    *iter = std::make_pair(get_id(elem), elem);
     watcher_type::elementUpdated(elem);
     return true;
   }
@@ -214,30 +281,35 @@ bool Store<Element, Marshaller, Watcher, Deleter>::strictUpdate(
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-void Store<Element, Marshaller, Watcher, Deleter>::update(
+void Store<Element, Marshaller, Watcher, TxManager, Deleter>::update(
     const Store::element& elem) {
+  TransactionManager manager(mDb);
   mElements[get_id(elem)] = elem;
+  manager.commit();
   watcher_type::elementUpdated(elem);
 }
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-typename Store<Element, Marshaller, Watcher, Deleter>::wrapper_type
-Store<Element, Marshaller, Watcher, Deleter>::wrapper(const key& id) {
+typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::wrapper_type
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::wrapper(const key& id) {
   return wrapper_type(this->shared_from_this(), get(id));
 }
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-typename Store<Element, Marshaller, Watcher, Deleter>::element
-Store<Element, Marshaller, Watcher, Deleter>::get(const key& id) const {
+typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::get(const key& id) const {
   if (auto iter = mElements.find(id, true); iter != mElements.end()) {
-    return *iter;
+    return (*iter).second;
   }
   throw std::range_error("not found element");
 }
@@ -245,39 +317,43 @@ Store<Element, Marshaller, Watcher, Deleter>::get(const key& id) const {
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, Deleter>::has(const key& id) const {
+bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::has(const key& id) const {
   auto it = mElements.find(id, true);
-  return mElements.cend() != it;
+  return mElements.end() != it;
 }
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-std::vector<typename Store<Element, Marshaller, Watcher, Deleter>::element>
-Store<Element, Marshaller, Watcher, Deleter>::getAllElements() const {
+std::vector<typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element>
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::getAllElements() const {
   std::vector<element> res;
-  std::copy(mElements.begin(
+  std::transform(mElements.begin(
                 dbstl::ReadModifyWriteOption::no_read_modify_write(), true),
-            mElements.end(), std::back_inserter(res));
+                 mElements.end(), std::back_inserter(res), [](const auto &elem){ return elem.second; });
   return res;
 }
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-int Store<Element, Marshaller, Watcher, Deleter>::size() const noexcept {
+int Store<Element, Marshaller, Watcher, TxManager, Deleter>::size() const noexcept {
   return mElements.size();
 }
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-typename Store<Element, Marshaller, Watcher, Deleter>::element
-Store<Element, Marshaller, Watcher, Deleter>::find(
+typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element
+Store<Element, Marshaller, Watcher, TxManager, Deleter>::find(
     std::function<bool(const Store::element&)> is) const {
   auto it = std::find_if(
       mElements.begin(dbstl::ReadModifyWriteOption::no_read_modify_write(),
@@ -294,14 +370,19 @@ Store<Element, Marshaller, Watcher, Deleter>::find(
 template <typename Element,
           typename Marshaller,
           typename Watcher,
+          typename TxManager,
           typename Deleter>
-std::vector<typename Store<Element, Marshaller, Watcher, Deleter>::element>
-Store<Element, Marshaller, Watcher, Deleter>::get_if(
+std::vector<typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element>
+Store<Element, Marshaller, Watcher,  TxManager, Deleter>::get_if(
     std::function<bool(const element&)> p) const {
   std::vector<element> res;
-  std::copy_if(mElements.begin(
-                   dbstl::ReadModifyWriteOption::no_read_modify_write(), true),
-               mElements.end(), std::back_inserter(res), p);
+  for(auto it = mElements.begin(
+          dbstl::ReadModifyWriteOption::no_read_modify_write(), true); it != mElements.end(); ++it){
+      auto val = *it;
+      if(p(val.second)){
+         res.push_back(val.second);
+      }
+  }
   return res;
 }
 
