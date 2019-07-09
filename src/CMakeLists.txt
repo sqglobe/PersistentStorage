@@ -5,15 +5,24 @@ find_package (Threads REQUIRED)
 
 set(FILES_SOURCES
   PersistentStorage/utils/store_primitives.cpp
+  PersistentStorage/storages/defaulttransactionmanager.cpp
 )
 
 set(FILES_HEADERS
-  PersistentStorage/storages/store.h
+  PersistentStorage/storages/storage.h
+  PersistentStorage/storages/childstorage.h
+  PersistentStorage/storages/defaulttransactionmanager.h
+
+  PersistentStorage/deleters/defaultdeleter.h
+  PersistentStorage/deleters/parentsdeleter.h
+  PersistentStorage/deleters/defaultchilddeleter.h
+  PersistentStorage/deleters/childthatisparentdeleter.h
 
   PersistentStorage/wrappers/containerelementwrapper.h
   PersistentStorage/wrappers/transparentcontainerelementwrapper.h
 
   PersistentStorage/utils/store_primitives.h
+
 
 )
 

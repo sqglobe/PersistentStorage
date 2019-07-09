@@ -1,5 +1,5 @@
 #include <QtTest>
-#include "PersistentStorage/storages/store.h"
+#include "PersistentStorage/storages/storage.h"
 #include "PersistentStorage/utils/store_primitives.h"
 
 
@@ -57,7 +57,7 @@ class StoreOperationsTest : public QObject {
 
 void StoreOperationsTest::testStoreInsertAndFetch()
 {
-   Store<TestElement, TestMarshaller, TestWatcher> store;
+   Storage<TestElement, TestMarshaller, TestWatcher> store;
    TestElement elem1{"test id 1", "test name 1"}, elem2{"test id 2", "test name 2"};
    QVERIFY(store.add(elem1));
    QVERIFY(store.add(elem2));
@@ -71,7 +71,7 @@ void StoreOperationsTest::testStoreInsertAndFetch()
 
 void StoreOperationsTest::testRemoveOperation()
 {
-    Store<TestElement, TestMarshaller, TestWatcher> store;
+    Storage<TestElement, TestMarshaller, TestWatcher> store;
     TestElement elem1{"test id 1", "test name 1"}, elem2{"test id 2", "test name 2"};
     QVERIFY(store.add(elem1));
     QVERIFY(store.add(elem2));
@@ -89,7 +89,7 @@ void StoreOperationsTest::testRemoveOperation()
 
 void StoreOperationsTest::testUpdateOperation()
 {
-    Store<TestElement, TestMarshaller, TestWatcher> store;
+    Storage<TestElement, TestMarshaller, TestWatcher> store;
     TestElement elem1{"test id 1", "test name 1"}, elem2{"test id 2", "test name 2"};
     QVERIFY(store.add(elem1));
     QVERIFY(store.add(elem2));
@@ -117,7 +117,7 @@ void StoreOperationsTest::testUpdateOperation()
 
 void StoreOperationsTest::testStrictUpdate()
 {
-    Store<TestElement, TestMarshaller, TestWatcher> store;
+    Storage<TestElement, TestMarshaller, TestWatcher> store;
     TestElement elem1{"test id 1", "test name 1"}, elem2{"test id 2", "test name 2"};
     QVERIFY(store.add(elem1));
     QVERIFY(store.add(elem2));
@@ -139,7 +139,7 @@ void StoreOperationsTest::testStrictUpdate()
 
 void StoreOperationsTest::testElementsAccess()
 {
-    Store<TestElement, TestMarshaller, TestWatcher> store;
+    Storage<TestElement, TestMarshaller, TestWatcher> store;
     TestElement elem1{"test id 1", "test name 1"}, elem2{"test id 2", "test name 2"}, elem3{"test id 3", "test name 3"};
     QVERIFY(store.add(elem1));
     QVERIFY(store.add(elem2));
@@ -162,7 +162,7 @@ void StoreOperationsTest::testElementsAccess()
 
 void StoreOperationsTest::testWrapper()
 {
-    std::shared_ptr<Store<TestElement, TestMarshaller, TestWatcher, DefaultTransactionManager, DefaultDeleter<std::string, TestElement>>> store = std::make_shared<Store<TestElement, TestMarshaller, TestWatcher, DefaultTransactionManager, DefaultDeleter<std::string, TestElement>>>();
+    std::shared_ptr<Storage<TestElement, TestMarshaller, TestWatcher, DefaultTransactionManager, DefaultDeleter<std::string, TestElement>>> store = std::make_shared<Storage<TestElement, TestMarshaller, TestWatcher, DefaultTransactionManager, DefaultDeleter<std::string, TestElement>>>();
     TestElement elem1{"test id 1", "test name 1"}, elem2{"test id 2", "test name 2"}, elem3{"test id 3", "test name 3"};
     QVERIFY(store->add(elem1));
     QVERIFY(store->add(elem2));

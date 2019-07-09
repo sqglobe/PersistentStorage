@@ -14,3 +14,7 @@ add_executable(StoreOperationsTest storeoperationstest.cpp)
 add_test(NAME StoreOperationsTest COMMAND StoreOperationsTest)
 target_link_libraries(StoreOperationsTest PRIVATE ${MY_TEST_LIBS} PersistentStorage)
 
+add_executable(ChildStorageTest childstoragetest.cpp)
+add_test(NAME ChildStorageTest COMMAND ChildStorageTest)
+target_link_libraries(ChildStorageTest PRIVATE ${MY_TEST_LIBS} PersistentStorage)
+

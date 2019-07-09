@@ -1,5 +1,5 @@
-#ifndef STORE_H
-#define STORE_H
+#ifndef STORAGE_H
+#define STORAGE_H
 
 #include <algorithm>
 #include <functional>
@@ -8,7 +8,8 @@
 #include <dbstl_map.h>
 #include <optional>
 #include "PersistentStorage/wrappers/transparentcontainerelementwrapper.h"
-
+#include "PersistentStorage/deleters/defaultdeleter.h"
+#include "defaulttransactionmanager.h"
 /*
  * Needed realisation of functions:
  *  std::string get_id(ConstElement element );
@@ -56,61 +57,6 @@
  * };
  */
 
-template <typename K, typename V>
-struct DefaultDeleter {
-  std::optional<V> operator()(dbstl::db_map<K, V>& elements, const K& id) {
-    if (auto iter = elements.find(id); iter != elements.end()) {
-      auto elem = *iter;
-      elements.erase(iter);
-      return {elem.second};
-    }
-    return {};
-  }
-};
-
-class DefaultTransactionManager{
-public:
-    DefaultTransactionManager(Db *db);
-    ~DefaultTransactionManager();
-    void commit();
-    void abort();
-private:
-    Db *mDb;
-    DbTxn *mTxn;
-};
-
-DefaultTransactionManager::DefaultTransactionManager(Db *db): mDb(db), mTxn(nullptr)
-{
-    if(mDb){
-        mTxn = dbstl::begin_txn(DB_TXN_SYNC| DB_TXN_WAIT, db->get_env());
-    }
-}
-
-DefaultTransactionManager::~DefaultTransactionManager()
-{
-    if( mDb && mTxn ){
-       dbstl::abort_txn(mDb->get_env(), mTxn);
-    }
-}
-
-void DefaultTransactionManager::commit()
-{
-    if(mDb && mTxn){
-        dbstl::commit_txn(mDb->get_env(), mTxn);
-        mDb = nullptr;
-        mTxn = nullptr;
-    }
-}
-
-void DefaultTransactionManager::abort()
-{
-    if(mDb && mTxn){
-        dbstl::abort_txn(mDb->get_env(), mTxn);
-        mDb = nullptr;
-        mTxn = nullptr;
-    }
-
-}
 
 template <
     typename Element,
@@ -119,21 +65,21 @@ template <
     typename TxManager = DefaultTransactionManager,
     typename Deleter =
         DefaultDeleter<decltype(get_id(std::declval<Element>())), Element>>
-class Store : public std::enable_shared_from_this<
-                  Store<Element, Marshaller, Watcher, TxManager, Deleter>>,
+class Storage : public std::enable_shared_from_this<
+                  Storage<Element, Marshaller, Watcher, TxManager, Deleter>>,
               public Watcher {
  public:
   using element = Element;
   using watcher_type = Watcher;
   using key = decltype(get_id(std::declval<Element>()));
   using wrapper_type = TransparentContainerElementWrapper<
-      Store<Element, Marshaller, Watcher, TxManager, Deleter>>;
+      Storage<Element, Marshaller, Watcher, TxManager, Deleter>>;
   using TransactionManager = TxManager;
 
  public:
-  Store(Db* db, DbEnv *env, Deleter&& deleter = Deleter());
-  explicit Store(Db* db, Deleter&& deleter = Deleter());
-  explicit Store(Deleter&& deleter = Deleter());
+  Storage(Db* db, DbEnv *env, Deleter&& deleter = Deleter());
+  explicit Storage(Db* db, Deleter&& deleter = Deleter());
+  explicit Storage(Deleter&& deleter = Deleter());
 
  public:
   /**
@@ -186,8 +132,9 @@ class Store : public std::enable_shared_from_this<
 
  protected:
   element find(std::function<bool(const element&)> is) const;
+  Deleter& getDeleter();
 
- protected:
+ private:
   mutable dbstl::db_map<key, element> mElements;
   mutable Db *mDb;
   Deleter mDeleter;
@@ -201,7 +148,7 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::Store(Db* db,
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(Db* db,
                                                     DbEnv* env,
                                                     Deleter&& deleter) :
     mElements(db, env),
@@ -218,24 +165,24 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::Store(Db* db, Deleter&& deleter) :
-    Store(db, db->get_env(), std::forward<Deleter>(deleter)) {}
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(Db* db, Deleter&& deleter) :
+    Storage(db, db->get_env(), std::forward<Deleter>(deleter)) {}
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::Store(Deleter&& deleter) :
-    Store(nullptr, nullptr, std::forward<Deleter>(deleter)) {}
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(Deleter&& deleter) :
+    Storage(nullptr, nullptr, std::forward<Deleter>(deleter)) {}
 
 template <typename Element,
           typename Marshaller,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::add(
-    const Store::element& elem) {
+bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::add(
+    const Storage::element& elem) {
   TransactionManager manager(mDb);
   if (auto [it, res] = mElements.insert(std::make_pair(get_id(elem), elem));
       res) {
@@ -251,7 +198,7 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::remove(const key& id) {
+bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::remove(const key& id) {
   TransactionManager manager(mDb);
   if (auto res = mDeleter(mElements, id); res) {
     manager.commit();
@@ -266,8 +213,8 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::strictUpdate(
-    const Store::element& elem) {
+bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::strictUpdate(
+    const Storage::element& elem) {
   TransactionManager manager(mDb);
   if (auto iter = mElements.find(get_id(elem)); iter != mElements.end()) {
     manager.commit();
@@ -283,8 +230,8 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-void Store<Element, Marshaller, Watcher, TxManager, Deleter>::update(
-    const Store::element& elem) {
+void Storage<Element, Marshaller, Watcher, TxManager, Deleter>::update(
+    const Storage::element& elem) {
   TransactionManager manager(mDb);
   mElements[get_id(elem)] = elem;
   manager.commit();
@@ -296,8 +243,8 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::wrapper_type
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::wrapper(const key& id) {
+typename Storage<Element, Marshaller, Watcher, TxManager, Deleter>::wrapper_type
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::wrapper(const key& id) {
   return wrapper_type(this->shared_from_this(), get(id));
 }
 
@@ -306,8 +253,8 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::get(const key& id) const {
+typename Storage<Element, Marshaller, Watcher, TxManager, Deleter>::element
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::get(const key& id) const {
   if (auto iter = mElements.find(id, true); iter != mElements.end()) {
     return (*iter).second;
   }
@@ -319,7 +266,7 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-bool Store<Element, Marshaller, Watcher, TxManager, Deleter>::has(const key& id) const {
+bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::has(const key& id) const {
   auto it = mElements.find(id, true);
   return mElements.end() != it;
 }
@@ -329,8 +276,8 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-std::vector<typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element>
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::getAllElements() const {
+std::vector<typename Storage<Element, Marshaller, Watcher, TxManager, Deleter>::element>
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::getAllElements() const {
   std::vector<element> res;
   std::transform(mElements.begin(
                 dbstl::ReadModifyWriteOption::no_read_modify_write(), true),
@@ -343,7 +290,7 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-int Store<Element, Marshaller, Watcher, TxManager, Deleter>::size() const noexcept {
+int Storage<Element, Marshaller, Watcher, TxManager, Deleter>::size() const noexcept {
   return mElements.size();
 }
 
@@ -352,9 +299,9 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element
-Store<Element, Marshaller, Watcher, TxManager, Deleter>::find(
-    std::function<bool(const Store::element&)> is) const {
+typename Storage<Element, Marshaller, Watcher, TxManager, Deleter>::element
+Storage<Element, Marshaller, Watcher, TxManager, Deleter>::find(
+    std::function<bool(const Storage::element&)> is) const {
   auto it = std::find_if(
       mElements.begin(dbstl::ReadModifyWriteOption::no_read_modify_write(),
                       true),
@@ -372,8 +319,8 @@ template <typename Element,
           typename Watcher,
           typename TxManager,
           typename Deleter>
-std::vector<typename Store<Element, Marshaller, Watcher, TxManager, Deleter>::element>
-Store<Element, Marshaller, Watcher,  TxManager, Deleter>::get_if(
+std::vector<typename Storage<Element, Marshaller, Watcher, TxManager, Deleter>::element>
+Storage<Element, Marshaller, Watcher,  TxManager, Deleter>::get_if(
     std::function<bool(const element&)> p) const {
   std::vector<element> res;
   for(auto it = mElements.begin(
@@ -386,4 +333,4 @@ Store<Element, Marshaller, Watcher,  TxManager, Deleter>::get_if(
   return res;
 }
 
-#endif  // STORE_H
+#endif  // STORAGE_H
