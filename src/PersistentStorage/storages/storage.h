@@ -136,7 +136,7 @@ class Storage : public std::enable_shared_from_this<
 
  private:
   mutable dbstl::db_map<key, element> mElements;
-  mutable Db *mDb;
+  mutable DbEnv *mEnv;
   Deleter mDeleter;
 
 };
@@ -152,7 +152,7 @@ Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(Db* db,
                                                     DbEnv* env,
                                                     Deleter&& deleter) :
     mElements(db, env),
-    mDb(db),
+    mEnv(env),
     mDeleter(std::forward<Deleter>(deleter)) {
   auto inst = dbstl::DbstlElemTraits<Element>::instance();
   inst->set_size_function(&Marshaller::size);
@@ -183,7 +183,7 @@ template <typename Element,
           typename Deleter>
 bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::add(
     const Storage::element& elem) {
-  TransactionManager manager(mDb);
+  TransactionManager manager(mEnv);
   if (auto [it, res] = mElements.insert(std::make_pair(get_id(elem), elem));
       res) {
     manager.commit();
@@ -199,7 +199,7 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::remove(const key& id) {
-  TransactionManager manager(mDb);
+  TransactionManager manager(mEnv);
   if (auto res = mDeleter(mElements, id); res) {
     manager.commit();
     watcher_type::elementRemoved(*res);
@@ -215,10 +215,10 @@ template <typename Element,
           typename Deleter>
 bool Storage<Element, Marshaller, Watcher, TxManager, Deleter>::strictUpdate(
     const Storage::element& elem) {
-  TransactionManager manager(mDb);
+  TransactionManager manager(mEnv);
   if (auto iter = mElements.find(get_id(elem)); iter != mElements.end()) {
-    manager.commit();
     *iter = std::make_pair(get_id(elem), elem);
+    manager.commit();
     watcher_type::elementUpdated(elem);
     return true;
   }
@@ -232,7 +232,7 @@ template <typename Element,
           typename Deleter>
 void Storage<Element, Marshaller, Watcher, TxManager, Deleter>::update(
     const Storage::element& elem) {
-  TransactionManager manager(mDb);
+  TransactionManager manager(mEnv);
   mElements[get_id(elem)] = elem;
   manager.commit();
   watcher_type::elementUpdated(elem);
@@ -312,6 +312,12 @@ Storage<Element, Marshaller, Watcher, TxManager, Deleter>::find(
   }
 
   throw std::range_error("not found element");
+}
+
+template<typename Element, typename Marshaller, typename Watcher, typename TxManager, typename Deleter>
+Deleter &Storage<Element, Marshaller, Watcher,  TxManager, Deleter>::getDeleter()
+{
+   return mDeleter;
 }
 
 template <typename Element,

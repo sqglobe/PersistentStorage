@@ -7,8 +7,10 @@ template <typename K, typename V, typename P, typename C>
 struct ChildThatIsParentDeleter: public DefaultChildDeleter<K, V, P, ParentsDeleter<K, V, C>>{
     using ParentDeleter = DefaultChildDeleter<K, V, P, ParentsDeleter<K, V, C>>;
 
+    using ParentDeleter::DefaultChildDeleter;
+
     std::vector<typename ChildThatIsParentDeleter::ValueType> operator()(
-            dbstl::multimap<typename ChildThatIsParentDeleter::ParentIdType, typename ChildThatIsParentDeleter::ValueType> &secondary,
+            dbstl::db_multimap<typename ChildThatIsParentDeleter::ParentIdType, typename ChildThatIsParentDeleter::ValueType> &secondary,
             const typename ChildThatIsParentDeleter::ParentType &parent)
     {
         std::vector<typename ChildThatIsParentDeleter::ValueType> deletedElements = ParentDeleter::operator()(secondary, parent);
@@ -17,7 +19,7 @@ struct ChildThatIsParentDeleter: public DefaultChildDeleter<K, V, P, ParentsDele
     }
 
     std::vector<typename ChildThatIsParentDeleter::ValueType> operator()(
-            dbstl::multimap<typename ChildThatIsParentDeleter::ParentIdType, typename ChildThatIsParentDeleter::ValueType> &secondary,
+            dbstl::db_multimap<typename ChildThatIsParentDeleter::ParentIdType, typename ChildThatIsParentDeleter::ValueType> &secondary,
             const std::vector<typename ChildThatIsParentDeleter::ParentType> &parents)
     {
         std::vector<typename ChildThatIsParentDeleter::ValueType> deletedElements = ParentDeleter::operator()(secondary, parents);

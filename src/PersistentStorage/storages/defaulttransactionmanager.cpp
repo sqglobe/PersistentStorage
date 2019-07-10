@@ -1,35 +1,32 @@
 #include "defaulttransactionmanager.h"
 #include <dbstl_common.h>
 
-
-DefaultTransactionManager::DefaultTransactionManager(Db *db): mDb(db), mTxn(nullptr)
+DefaultTransactionManager::DefaultTransactionManager(DbEnv *env): mEnv(env), mTxn(env ?  dbstl::begin_txn(DB_TXN_SYNC| DB_TXN_WAIT, env) : nullptr)
 {
-    if(mDb){
-        mTxn = dbstl::begin_txn(DB_TXN_SYNC| DB_TXN_WAIT, db->get_env());
-    }
 }
 
 DefaultTransactionManager::~DefaultTransactionManager()
 {
-    if( mDb && mTxn ){
-       dbstl::abort_txn(mDb->get_env(), mTxn);
+    if( mEnv && mTxn ){
+       dbstl::abort_txn(mEnv, mTxn);
     }
 }
 
 void DefaultTransactionManager::commit()
 {
-    if(mDb && mTxn){
-        dbstl::commit_txn(mDb->get_env(), mTxn);
-        mDb = nullptr;
+
+    if(mEnv && mTxn){
+        dbstl::commit_txn(mEnv, mTxn);
+        mEnv = nullptr;
         mTxn = nullptr;
     }
 }
 
 void DefaultTransactionManager::abort()
 {
-    if(mDb && mTxn){
-        dbstl::abort_txn(mDb->get_env(), mTxn);
-        mDb = nullptr;
+    if(mEnv && mTxn){
+        dbstl::abort_txn(mEnv, mTxn);
+        mEnv = nullptr;
         mTxn = nullptr;
     }
 

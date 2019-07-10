@@ -5,12 +5,12 @@
 
 class DefaultTransactionManager{
 public:
-    DefaultTransactionManager(Db *db);
+    DefaultTransactionManager(DbEnv *env);
     ~DefaultTransactionManager();
     void commit();
     void abort();
 private:
-    Db *mDb;
+    DbEnv *mEnv;
     DbTxn *mTxn;
 };
 

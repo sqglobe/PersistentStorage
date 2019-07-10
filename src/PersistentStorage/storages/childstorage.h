@@ -31,13 +31,13 @@ public:
 
 private:
     Db *mSecondaryDb;
-    dbstl::multimap<ParentElementId, Element> mSecondaryKeys;
+    dbstl::db_multimap<ParentElementId, Element> mSecondaryKeys;
 };
 
 
 template<typename Element, typename Parent, typename Marshaller, typename Watcher, typename TxManager, typename Deleter>
 ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::ChildStorage(Db *db, Db *secondary, DbEnv *env, Deleter &&deleter):
-    ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::ParentContainer(db, env, deleter),
+    ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::ParentContainer(db, env, std::move(deleter)),
     mSecondaryDb(secondary), mSecondaryKeys(secondary, env)
 {
 }
@@ -46,7 +46,7 @@ template<typename Element, typename Parent, typename Marshaller, typename Watche
 void ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::parentRemoved(const Parent &parent)
 {
     auto deletedElements = this->getDeleter()(mSecondaryKeys, parent);
-    std::for_each(std::cbegin(deletedElements), std::cend(deletedElements), [](const Element &element){
+    std::for_each(std::cbegin(deletedElements), std::cend(deletedElements), [this](const Element &element){
       ParentContainer::watcher_type::elementRemoved(element);
     });
 }
@@ -55,7 +55,7 @@ template<typename Element, typename Parent, typename Marshaller, typename Watche
 void ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::parentRemoved(const std::vector<Parent> &parents)
 {
    auto deletedElements = this->getDeleter()(mSecondaryKeys, parents);
-   std::for_each(std::cbegin(deletedElements), std::cend(deletedElements), [](const Element &element){
+   std::for_each(std::cbegin(deletedElements), std::cend(deletedElements), [this](const Element &element){
      ParentContainer::watcher_type::elementRemoved(element);
    });
 }
