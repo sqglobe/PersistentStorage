@@ -1,11 +1,11 @@
 #include <QtTest>
-#include "PersistentStorage/storages/storage.h"
-#include "PersistentStorage/storages/childstorage.h"
-#include "PersistentStorage/utils/store_primitives.h"
+#include "persistent-storage/storages/storage.h"
+#include "persistent-storage/storages/childstorage.h"
+#include "persistent-storage/utils/store_primitives.h"
 
-#include "PersistentStorage/deleters/defaultchilddeleter.h"
-#include "PersistentStorage/deleters/parentsdeleter.h"
-#include "PersistentStorage/deleters/childthatisparentdeleter.h"
+#include "persistent-storage/deleters/defaultchilddeleter.h"
+#include "persistent-storage/deleters/parentsdeleter.h"
+#include "persistent-storage/deleters/childthatisparentdeleter.h"
 
 
 struct TestElement{

@@ -1,6 +1,6 @@
 #include <QtTest>
-#include "PersistentStorage/watchers/eventqueuewatcher.h"
-#include "PersistentStorage/watchers/enqueuedevents.h"
+#include "persistent-storage/watchers/eventqueuewatcher.h"
+#include "persistent-storage/watchers/enqueuedevents.h"
 
 
 struct TestElement{

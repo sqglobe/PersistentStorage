@@ -2,35 +2,35 @@ find_package(BerkeleyDB REQUIRED)
 find_package (Threads REQUIRED)
 
 set(FILES_SOURCES
-  PersistentStorage/utils/store_primitives.cpp
-  PersistentStorage/storages/defaulttransactionmanager.cpp
+  persistent-storage/utils/store_primitives.cpp
+  persistent-storage/storages/defaulttransactionmanager.cpp
 )
 
 set(FILES_HEADERS
-  PersistentStorage/storages/storage.h
-  PersistentStorage/storages/childstorage.h
-  PersistentStorage/storages/defaulttransactionmanager.h
+  persistent-storage/storages/storage.h
+  persistent-storage/storages/childstorage.h
+  persistent-storage/storages/defaulttransactionmanager.h
 
-  PersistentStorage/deleters/defaultdeleter.h
-  PersistentStorage/deleters/parentsdeleter.h
-  PersistentStorage/deleters/defaultchilddeleter.h
-  PersistentStorage/deleters/childthatisparentdeleter.h
+  persistent-storage/deleters/defaultdeleter.h
+  persistent-storage/deleters/parentsdeleter.h
+  persistent-storage/deleters/defaultchilddeleter.h
+  persistent-storage/deleters/childthatisparentdeleter.h
 
-  PersistentStorage/wrappers/containerelementwrapper.h
-  PersistentStorage/wrappers/transparentcontainerelementwrapper.h
+  persistent-storage/wrappers/containerelementwrapper.h
+  persistent-storage/wrappers/transparentcontainerelementwrapper.h
 
-  PersistentStorage/watchers/eventqueuewatcher.h
-  PersistentStorage/watchers/enqueuedevents.h
-  PersistentStorage/watchers/eventlistenerholder.h
+  persistent-storage/watchers/eventqueuewatcher.h
+  persistent-storage/watchers/enqueuedevents.h
+  persistent-storage/watchers/eventlistenerholder.h
 
 
-  PersistentStorage/utils/store_primitives.h
+  persistent-storage/utils/store_primitives.h
 )
 
-add_library(PersistentStorage ${FILES_SOURCES} ${FILES_HEADERS})
+add_library(${LIBRARY_NAME} ${FILES_SOURCES} ${FILES_HEADERS})
 
-target_link_libraries(PersistentStorage PUBLIC ${CMAKE_THREAD_LIBS_INIT} Oracle::BerkeleyDB)
+target_link_libraries(${LIBRARY_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT} Oracle::BerkeleyDB)
 
-target_include_directories(PersistentStorage PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(PersistentStorage PROPERTIES PUBLIC_HEADER "${FILES_HEADERS}")
+target_include_directories(${LIBRARY_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/submodules/eventpp/include)
 
+include(${CMAKE_SOURCE_DIR}/cmake/LibraryConfig.cmake)

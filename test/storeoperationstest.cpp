@@ -1,6 +1,6 @@
 #include <QtTest>
-#include "PersistentStorage/storages/storage.h"
-#include "PersistentStorage/utils/store_primitives.h"
+#include "persistent-storage/storages/storage.h"
+#include "persistent-storage/utils/store_primitives.h"
 
 
 

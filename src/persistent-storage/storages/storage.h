@@ -7,8 +7,8 @@
 #include <db_cxx.h>
 #include <dbstl_map.h>
 #include <optional>
-#include "PersistentStorage/wrappers/transparentcontainerelementwrapper.h"
-#include "PersistentStorage/deleters/defaultdeleter.h"
+#include "persistent-storage/wrappers/transparentcontainerelementwrapper.h"
+#include "persistent-storage/deleters/defaultdeleter.h"
 #include "defaulttransactionmanager.h"
 /*
  * Needed realisation of functions:

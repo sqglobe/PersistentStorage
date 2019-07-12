@@ -6,4 +6,14 @@
 
 * `BerkeleyDB_ROOT_DIR`
 * `THREADS_PREFER_PTHREAD_FLAG` **ON**
-* `ADDITIONAL_HEADERS_PATH` с путем к **eventpp**
+
+Сборка и установка проекта выполняется командами:
+
+```
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=../installed ..
+make install
+```
+
+Конфигурация по сборке библиотеки взята из репозитория - https://github.com/pablospe/cmake-example-library
