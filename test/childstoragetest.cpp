@@ -75,6 +75,7 @@ class ChildStorageTest : public QObject {
    void testSeveralLevelsOfInheritance();
    void testWrapperInChildContainer();
    void cleanup();
+   void cleanupTestCase();
 
 private:
    DbEnv* penv;
@@ -88,8 +89,9 @@ private:
 
 ChildStorageTest::ChildStorageTest()
 {
+    dbstl::dbstl_startup();
     penv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
-    auto res = penv->open(".", DB_INIT_LOCK | DB_INIT_LOG |  DB_INIT_MPOOL | DB_INIT_TXN | DB_CREATE | DB_PRIVATE | DB_RECOVER | DB_THREAD, 0600 );
+    auto res = penv->open(".", DB_INIT_LOCK |  DB_INIT_MPOOL | DB_INIT_TXN | DB_CREATE | DB_PRIVATE | DB_RECOVER | DB_THREAD, 0600 );
 
     QCOMPARE(0, res);
 
@@ -253,6 +255,13 @@ void ChildStorageTest::cleanup()
 {
     parent_db->truncate(nullptr, nullptr, 0);
     db->truncate(nullptr, nullptr, 0);
+}
+
+void ChildStorageTest::cleanupTestCase()
+{
+    dbstl::dbstl_exit();
+    if(penv)
+        delete penv;
 }
 
 QTEST_APPLESS_MAIN(ChildStorageTest)
