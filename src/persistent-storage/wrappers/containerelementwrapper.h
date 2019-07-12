@@ -9,6 +9,8 @@
  * к методам оборачиваемого элемента. Оборачиваемый элемент должен иметь
  * конструктор копирования.
  */
+
+namespace prstorage {
 template <typename C>
 class ContainerElementWrapper {
  private:
@@ -75,21 +77,22 @@ class ContainerElementWrapper {
   std::shared_ptr<C> mContainer;
 };
 
+}  // namespace prstorage
 template <typename C>
-ContainerElementWrapper<C>::ContainerElementWrapper(
+prstorage::ContainerElementWrapper<C>::ContainerElementWrapper(
     std::shared_ptr<C> container,
     const ContainerElementWrapper::element& elem) :
     mElement(make_element_copy(elem)),
     mContainer(std::move(container)) {}
 
 template <typename C>
-ContainerElementWrapper<C>::ContainerElementWrapper(
+prstorage::ContainerElementWrapper<C>::ContainerElementWrapper(
     ContainerElementWrapper<C>&& elem) noexcept :
     mElement(std::move(elem.mElement)),
     mContainer(std::move(elem.mContainer)) {}
 
 template <typename C>
-bool ContainerElementWrapper<C>::save() {
+bool prstorage::ContainerElementWrapper<C>::save() {
   try {
     return mContainer->strictUpdate(mElement);
   } catch (const std::exception&) {
@@ -99,7 +102,7 @@ bool ContainerElementWrapper<C>::save() {
 }
 
 template <typename C>
-bool ContainerElementWrapper<C>::remove() {
+bool prstorage::ContainerElementWrapper<C>::remove() {
   try {
     return mContainer->remove(get_id(mElement));
   } catch (const std::exception&) {
@@ -109,7 +112,7 @@ bool ContainerElementWrapper<C>::remove() {
 }
 
 template <typename C>
-void ContainerElementWrapper<C>::reload() {
+void prstorage::ContainerElementWrapper<C>::reload() {
   try {
     mElement = mContainer->get(get_id(mElement));
   } catch (const std::exception&) {
@@ -118,8 +121,8 @@ void ContainerElementWrapper<C>::reload() {
 }
 
 template <typename C>
-typename ContainerElementWrapper<C>::element&
-ContainerElementWrapper<C>::get() {
+typename prstorage::ContainerElementWrapper<C>::element&
+prstorage::ContainerElementWrapper<C>::get() {
   return mElement;
 }
 
@@ -142,5 +145,4 @@ template <typename T>
 T* make_element_copy(T* element) {
   return new T(*element);
 }
-
 #endif  // CONTAINERELEMENTWRAPPER_H

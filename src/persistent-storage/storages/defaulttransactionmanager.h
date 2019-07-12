@@ -3,15 +3,18 @@
 
 #include <db_cxx.h>
 
-class DefaultTransactionManager{
-public:
-    DefaultTransactionManager(DbEnv *env);
-    ~DefaultTransactionManager();
-    void commit();
-    void abort();
-private:
-    DbEnv *mEnv;
-    DbTxn *mTxn;
-};
+namespace prstorage {
+class DefaultTransactionManager {
+ public:
+  DefaultTransactionManager(DbEnv* env);
+  ~DefaultTransactionManager();
+  void commit();
+  void abort();
 
-#endif // DEFAULTTRANSACTIONMANAGER_H
+ private:
+  DbEnv* mEnv;
+  DbTxn* mTxn;
+};
+}  // namespace prstorage
+
+#endif  // DEFAULTTRANSACTIONMANAGER_H

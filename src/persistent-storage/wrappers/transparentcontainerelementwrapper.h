@@ -7,6 +7,8 @@
  * Добавляет в прокси-класс элементов контейнеров возможность прозрачного
  * доступа к методам класса через оператор ->
  */
+
+namespace prstorage {
 template <typename C, typename = void>
 class TransparentContainerElementWrapper : public ContainerElementWrapper<C> {
  public:
@@ -14,9 +16,7 @@ class TransparentContainerElementWrapper : public ContainerElementWrapper<C> {
 
  public:
   typename C::element* operator->() { return &(this->mElement); }
-  typename C::element const* operator->() const {
-    return &(this->mElement);
-  }
+  typename C::element const* operator->() const { return &(this->mElement); }
 };
 
 /**
@@ -51,5 +51,6 @@ class TransparentContainerElementWrapper<
   typename C::element& operator->() { return this->mElement; }
   typename C::const_element operator->() const { return this->mElement; }
 };
+}  // namespace prstorage
 
 #endif  // TRANSPARENTCONTAINERELEMENTWRAPPER_H
