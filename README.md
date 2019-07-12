@@ -12,7 +12,7 @@
 ```
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=../installed ..
+cmake -DCMAKE_INSTALL_PREFIX=../installed -DBerkeleyDB_ROOT_DIR=/usr/lib ..
 make install
 ```
 
