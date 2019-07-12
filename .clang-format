@@ -26,7 +26,7 @@ BraceWrapping:
   AfterEnum:       false
   AfterFunction:   true
   AfterNamespace:  false
-  AfterObjCDeclaration: false
+  AfterObjCDeclaration: true
   AfterStruct:     false
   AfterUnion:      false
   AfterExternBlock: false
@@ -37,7 +37,7 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Custom
 BreakBeforeInheritanceComma: false
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon

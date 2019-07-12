@@ -13,13 +13,16 @@ class TestElementWatcher : public EventQueueWatcher<TestElement> {
   using super = EventQueueWatcher<TestElement>;
 
  public:
-  void elementAdded(const TestElement& element) {
+  void elementAdded(const TestElement& element)
+  {
     super::elementAdded(element);
   }
-  void elementRemoved(const TestElement& element) {
+  void elementRemoved(const TestElement& element)
+  {
     super::elementRemoved(element);
   }
-  void elementUpdated(const TestElement& element) {
+  void elementUpdated(const TestElement& element)
+  {
     super::elementUpdated(element);
   }
 };
@@ -41,7 +44,8 @@ class ChangeWatcherTest : public QObject {
   void testTemporaryAndPermanentListeners();
 };
 
-void ChangeWatcherTest::testAddEventHandling() {
+void ChangeWatcherTest::testAddEventHandling()
+{
   TestElementWatcher watcher;
   TestElement testEl{"added id", "added name"};
   auto calledCount = 0;
@@ -79,7 +83,8 @@ void ChangeWatcherTest::testAddEventHandling() {
   QCOMPARE(calledCount, 3);
 }
 
-void ChangeWatcherTest::testAddEventTemporaryHandler() {
+void ChangeWatcherTest::testAddEventTemporaryHandler()
+{
   TestElementWatcher watcher;
   TestElement testEl{"added id", "added name"};
   auto calledCount = 0;
@@ -117,7 +122,8 @@ void ChangeWatcherTest::testAddEventTemporaryHandler() {
   QCOMPARE(calledCount, 3);
 }
 
-void ChangeWatcherTest::testUpdateEventHandling() {
+void ChangeWatcherTest::testUpdateEventHandling()
+{
   TestElementWatcher watcher;
   TestElement testEl{"update id", "update name"};
   auto calledCount = 0;
@@ -155,7 +161,8 @@ void ChangeWatcherTest::testUpdateEventHandling() {
   QCOMPARE(calledCount, 3);
 }
 
-void ChangeWatcherTest::testUpdateEventTemporaryHandler() {
+void ChangeWatcherTest::testUpdateEventTemporaryHandler()
+{
   TestElementWatcher watcher;
   TestElement testEl{"updated id", "updated name"};
   auto calledCount = 0;
@@ -193,7 +200,8 @@ void ChangeWatcherTest::testUpdateEventTemporaryHandler() {
   QCOMPARE(calledCount, 3);
 }
 
-void ChangeWatcherTest::testDeleteEventHandling() {
+void ChangeWatcherTest::testDeleteEventHandling()
+{
   TestElementWatcher watcher;
   TestElement testEl{"delete id", "delete name"};
   auto calledCount = 0;
@@ -231,7 +239,8 @@ void ChangeWatcherTest::testDeleteEventHandling() {
   QCOMPARE(calledCount, 3);
 }
 
-void ChangeWatcherTest::testDeleteEventTemporaryHandler() {
+void ChangeWatcherTest::testDeleteEventTemporaryHandler()
+{
   TestElementWatcher watcher;
   TestElement testEl{"deleted id", "deleted name"};
   auto calledCount = 0;
@@ -269,7 +278,8 @@ void ChangeWatcherTest::testDeleteEventTemporaryHandler() {
   QCOMPARE(calledCount, 3);
 }
 
-void ChangeWatcherTest::testTemporaryAndPermanentListeners() {
+void ChangeWatcherTest::testTemporaryAndPermanentListeners()
+{
   TestElementWatcher watcher;
 
   auto addListenerCalledCount = 0;

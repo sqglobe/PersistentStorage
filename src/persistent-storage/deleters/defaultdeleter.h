@@ -12,7 +12,8 @@ struct DefaultDeleter {
 
   std::optional<ValueType> operator()(
       dbstl::db_map<KeyType, ValueType>& elements,
-      const KeyType& id) {
+      const KeyType& id)
+  {
     if (auto iter = elements.find(id); iter != elements.end()) {
       auto elem = *iter;
       elements.erase(iter);

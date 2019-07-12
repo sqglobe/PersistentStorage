@@ -40,30 +40,39 @@ prstorage::EventListenerHolder<EventQueueType>::EventListenerHolder(
     std::shared_ptr<EventQueueType> eventQueue,
     std::initializer_list<EventsInfo> handles) :
     mEventQueue(eventQueue),
-    mHandles(handles) {}
+    mHandles(handles)
+{
+}
 
 template <typename EventQueueType>
 prstorage::EventListenerHolder<EventQueueType>::EventListenerHolder(
     std::shared_ptr<EventQueueType> eventQueue,
     const std::list<EventListenerHolder::EventsInfo>& handles) :
     mEventQueue(eventQueue),
-    mHandles(handles) {}
+    mHandles(handles)
+{
+}
 
 template <typename EventQueueType>
 prstorage::EventListenerHolder<EventQueueType>::EventListenerHolder(
     std::shared_ptr<EventQueueType> eventQueue,
     std::list<EventListenerHolder::EventsInfo>&& handles) :
     mEventQueue(eventQueue),
-    mHandles(std::move(handles)) {}
+    mHandles(std::move(handles))
+{
+}
 
 template <typename EventQueueType>
 prstorage::EventListenerHolder<EventQueueType>::EventListenerHolder(
     EventListenerHolder&& holder) :
     mEventQueue(std::move(holder.mEventQueue)),
-    mHandles(std::move(holder.mHandles)) {}
+    mHandles(std::move(holder.mHandles))
+{
+}
 
 template <typename EventQueueType>
-prstorage::EventListenerHolder<EventQueueType>::~EventListenerHolder() {
+prstorage::EventListenerHolder<EventQueueType>::~EventListenerHolder()
+{
   if (auto ptr = mEventQueue.lock()) {
     std::for_each(std::cbegin(mHandles), std::cend(mHandles),
                   [&ptr](const auto& handle) mutable {

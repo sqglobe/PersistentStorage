@@ -152,7 +152,8 @@ prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(
     DbEnv* env,
     Deleter&& deleter) :
     mElements(db, env),
-    mEnv(env), mDeleter(std::forward<Deleter>(deleter)) {
+    mEnv(env), mDeleter(std::forward<Deleter>(deleter))
+{
   auto inst = dbstl::DbstlElemTraits<Element>::instance();
   inst->set_size_function(&Marshaller::size);
   inst->set_copy_function(&Marshaller::store);
@@ -167,7 +168,9 @@ template <typename Element,
 prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(
     Db* db,
     Deleter&& deleter) :
-    Storage(db, db->get_env(), std::forward<Deleter>(deleter)) {}
+    Storage(db, db->get_env(), std::forward<Deleter>(deleter))
+{
+}
 
 template <typename Element,
           typename Marshaller,
@@ -176,7 +179,9 @@ template <typename Element,
           typename Deleter>
 prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::Storage(
     Deleter&& deleter) :
-    Storage(nullptr, nullptr, std::forward<Deleter>(deleter)) {}
+    Storage(nullptr, nullptr, std::forward<Deleter>(deleter))
+{
+}
 
 template <typename Element,
           typename Marshaller,
@@ -184,7 +189,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 bool prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::add(
-    const Storage::element& elem) {
+    const Storage::element& elem)
+{
   TransactionManager manager(mEnv);
   if (auto [it, res] = mElements.insert(std::make_pair(get_id(elem), elem));
       res) {
@@ -201,7 +207,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 bool prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
-    remove(const key& id) {
+    remove(const key& id)
+{
   TransactionManager manager(mEnv);
   if (auto res = mDeleter(mElements, id); res) {
     manager.commit();
@@ -217,7 +224,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 bool prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
-    strictUpdate(const Storage::element& elem) {
+    strictUpdate(const Storage::element& elem)
+{
   TransactionManager manager(mEnv);
   if (auto iter = mElements.find(get_id(elem)); iter != mElements.end()) {
     *iter = std::make_pair(get_id(elem), elem);
@@ -234,7 +242,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 void prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
-    update(const Storage::element& elem) {
+    update(const Storage::element& elem)
+{
   TransactionManager manager(mEnv);
   mElements[get_id(elem)] = elem;
   manager.commit();
@@ -249,7 +258,8 @@ template <typename Element,
 typename prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
     wrapper_type
     prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
-        wrapper(const key& id) {
+        wrapper(const key& id)
+{
   return wrapper_type(this->shared_from_this(), get(id));
 }
 
@@ -261,7 +271,8 @@ template <typename Element,
 typename prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
     element
     prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::get(
-        const key& id) const {
+        const key& id) const
+{
   if (auto iter = mElements.find(id, true); iter != mElements.end()) {
     return (*iter).second;
   }
@@ -274,7 +285,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 bool prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::has(
-    const key& id) const {
+    const key& id) const
+{
   auto it = mElements.find(id, true);
   return mElements.end() != it;
 }
@@ -288,7 +300,8 @@ std::vector<
     typename prstorage::
         Storage<Element, Marshaller, Watcher, TxManager, Deleter>::element>
 prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
-    getAllElements() const {
+    getAllElements() const
+{
   std::vector<element> res;
   std::transform(
       mElements.begin(dbstl::ReadModifyWriteOption::no_read_modify_write(),
@@ -304,7 +317,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 int prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::size()
-    const noexcept {
+    const noexcept
+{
   return mElements.size();
 }
 
@@ -316,7 +330,8 @@ template <typename Element,
 typename prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
     element
     prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::find(
-        std::function<bool(const Storage::element&)> is) const {
+        std::function<bool(const Storage::element&)> is) const
+{
   auto it = std::find_if(
       mElements.begin(dbstl::ReadModifyWriteOption::no_read_modify_write(),
                       true),
@@ -335,7 +350,8 @@ template <typename Element,
           typename TxManager,
           typename Deleter>
 Deleter& prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::
-    getDeleter() {
+    getDeleter()
+{
   return mDeleter;
 }
 
@@ -348,7 +364,8 @@ std::vector<
     typename prstorage::
         Storage<Element, Marshaller, Watcher, TxManager, Deleter>::element>
 prstorage::Storage<Element, Marshaller, Watcher, TxManager, Deleter>::get_if(
-    std::function<bool(const element&)> p) const {
+    std::function<bool(const element&)> p) const
+{
   std::vector<element> res;
   for (auto it = mElements.begin(
            dbstl::ReadModifyWriteOption::no_read_modify_write(), true);

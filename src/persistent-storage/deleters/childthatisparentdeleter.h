@@ -16,7 +16,8 @@ struct ChildThatIsParentDeleter
       dbstl::db_multimap<typename ChildThatIsParentDeleter::ParentIdType,
                          typename ChildThatIsParentDeleter::ValueType>&
           secondary,
-      const typename ChildThatIsParentDeleter::ParentType& parent) {
+      const typename ChildThatIsParentDeleter::ParentType& parent)
+  {
     std::vector<typename ChildThatIsParentDeleter::ValueType> deletedElements =
         ParentDeleter::operator()(secondary, parent);
     this->getChild()->parentRemoved(deletedElements);
@@ -27,8 +28,8 @@ struct ChildThatIsParentDeleter
       dbstl::db_multimap<typename ChildThatIsParentDeleter::ParentIdType,
                          typename ChildThatIsParentDeleter::ValueType>&
           secondary,
-      const std::vector<typename ChildThatIsParentDeleter::ParentType>&
-          parents) {
+      const std::vector<typename ChildThatIsParentDeleter::ParentType>& parents)
+  {
     std::vector<typename ChildThatIsParentDeleter::ValueType> deletedElements =
         ParentDeleter::operator()(secondary, parents);
     this->getChild()->parentRemoved(deletedElements);

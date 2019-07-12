@@ -16,23 +16,27 @@ struct TestElement {
   std::string name;
 };
 
-std::string get_id(const TestElement& elem) {
+std::string get_id(const TestElement& elem)
+{
   return elem.id;
 }
 
 class TestMarshaller {
  public:
-  static void restore(TestElement& elem, const void* src) {
+  static void restore(TestElement& elem, const void* src)
+  {
     src = restore_str(elem.id, src);
     src = restore_str(elem.name, src);
   }
-  static u_int32_t size(const TestElement& element) {
+  static u_int32_t size(const TestElement& element)
+  {
     u_int32_t size = 0;
     size += sizeof(std::string::size_type) + element.id.length();
     size += sizeof(std::string::size_type) + element.name.length();
     return size;
   }
-  static void store(void* dest, const TestElement& elem) {
+  static void store(void* dest, const TestElement& elem)
+  {
     dest = save_str(elem.id, dest);
     dest = save_str(elem.name, dest);
   }
@@ -41,7 +45,8 @@ class TestMarshaller {
 int get_dest_secdb_callback(Db* /* secondary */,
                             const Dbt* /* key */,
                             const Dbt* data,
-                            Dbt* result) {
+                            Dbt* result)
+{
   TestElement el;
   TestMarshaller::restore(el, data->get_data());
 
@@ -76,7 +81,8 @@ class StoreWithWatcherTest : public QObject {
   Db* parent_db;
 };
 
-StoreWithWatcherTest::StoreWithWatcherTest() {
+StoreWithWatcherTest::StoreWithWatcherTest()
+{
   dbstl::dbstl_startup();
   penv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
   auto res =
@@ -117,7 +123,8 @@ StoreWithWatcherTest::StoreWithWatcherTest() {
   db->associate(nullptr, secdb, get_dest_secdb_callback, DB_CREATE);
 }
 
-void StoreWithWatcherTest::testAddWatcher() {
+void StoreWithWatcherTest::testAddWatcher()
+{
   using ChildContainerType =
       ChildStorage<TestElement, TestElement, TestMarshaller,
                    EventQueueWatcher<TestElement>>;
@@ -170,7 +177,8 @@ void StoreWithWatcherTest::testAddWatcher() {
   QCOMPARE(countChildCalled, 2);
 }
 
-void StoreWithWatcherTest::testRemoveParent() {
+void StoreWithWatcherTest::testRemoveParent()
+{
   using ChildContainerType =
       ChildStorage<TestElement, TestElement, TestMarshaller,
                    EventQueueWatcher<TestElement>>;
@@ -227,12 +235,14 @@ void StoreWithWatcherTest::testRemoveParent() {
   QCOMPARE(countChildCalled, 2);
 }
 
-void StoreWithWatcherTest::cleanup() {
+void StoreWithWatcherTest::cleanup()
+{
   parent_db->truncate(nullptr, nullptr, 0);
   db->truncate(nullptr, nullptr, 0);
 }
 
-void StoreWithWatcherTest::cleanupTestCase() {
+void StoreWithWatcherTest::cleanupTestCase()
+{
   dbstl::dbstl_exit();
   if (penv)
     delete penv;

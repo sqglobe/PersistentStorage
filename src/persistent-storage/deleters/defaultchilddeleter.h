@@ -13,12 +13,15 @@ struct DefaultChildDeleter : public D {
   using ParentDeleter = D;
 
   template <typename... Args>
-  DefaultChildDeleter(Args&&... args) : D(std::forward<Args>(args)...) {}
+  DefaultChildDeleter(Args&&... args) : D(std::forward<Args>(args)...)
+  {
+  }
 
   std::vector<typename DefaultChildDeleter::ValueType> operator()(
       dbstl::db_multimap<ParentIdType, typename DefaultChildDeleter::ValueType>&
           secondary,
-      const ParentType& parent) {
+      const ParentType& parent)
+  {
     std::vector<typename DefaultChildDeleter::ValueType> deletedElements;
     auto [begin, end] = secondary.equal_range(get_id(parent));
     std::transform(begin, end, std::back_inserter(deletedElements),
@@ -31,7 +34,8 @@ struct DefaultChildDeleter : public D {
   std::vector<typename DefaultChildDeleter::ValueType> operator()(
       dbstl::db_multimap<ParentIdType, typename DefaultChildDeleter::ValueType>&
           secondary,
-      const std::vector<ParentType>& parents) {
+      const std::vector<ParentType>& parents)
+  {
     std::vector<typename DefaultChildDeleter::ValueType> deletedElements;
     for (auto parent : parents) {
       auto [begin, end] = secondary.equal_range(get_id(parent));

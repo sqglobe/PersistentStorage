@@ -9,27 +9,33 @@ enum class EnqueuedEvents {
   ALL_EVENTS = ADDED | UPDATED | DELETED
 };
 
-inline unsigned char operator&(EnqueuedEvents event, unsigned char el) {
+inline unsigned char operator&(EnqueuedEvents event, unsigned char el)
+{
   return static_cast<unsigned char>(event) & el;
 }
 
-inline unsigned char operator&(unsigned char el, EnqueuedEvents event) {
+inline unsigned char operator&(unsigned char el, EnqueuedEvents event)
+{
   return event & el;
 }
 
-inline unsigned char operator&(EnqueuedEvents event1, EnqueuedEvents event2) {
+inline unsigned char operator&(EnqueuedEvents event1, EnqueuedEvents event2)
+{
   return event1 & static_cast<unsigned char>(event2);
 }
 
-inline unsigned char operator|(EnqueuedEvents event, unsigned char el) {
+inline unsigned char operator|(EnqueuedEvents event, unsigned char el)
+{
   return static_cast<unsigned char>(event) | el;
 }
 
-inline unsigned char operator|(unsigned char el, EnqueuedEvents event) {
+inline unsigned char operator|(unsigned char el, EnqueuedEvents event)
+{
   return event | el;
 }
 
-inline unsigned char operator|(EnqueuedEvents event1, EnqueuedEvents event2) {
+inline unsigned char operator|(EnqueuedEvents event1, EnqueuedEvents event2)
+{
   return event1 | static_cast<unsigned char>(event2);
 }
 }  // namespace prstorage

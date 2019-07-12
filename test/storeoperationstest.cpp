@@ -9,7 +9,8 @@ struct TestElement {
   std::string name;
 };
 
-std::string get_id(const TestElement& elem) {
+std::string get_id(const TestElement& elem)
+{
   return elem.id;
 }
 
@@ -22,17 +23,20 @@ class TestWatcher {
 
 class TestMarshaller {
  public:
-  static void restore(TestElement& elem, const void* src) {
+  static void restore(TestElement& elem, const void* src)
+  {
     src = restore_str(elem.id, src);
     src = restore_str(elem.name, src);
   }
-  static u_int32_t size(const TestElement& element) {
+  static u_int32_t size(const TestElement& element)
+  {
     u_int32_t size = 0;
     size += sizeof(std::string::size_type) + element.id.length();
     size += sizeof(std::string::size_type) + element.name.length();
     return size;
   }
-  static void store(void* dest, const TestElement& elem) {
+  static void store(void* dest, const TestElement& elem)
+  {
     dest = save_str(elem.id, dest);
     dest = save_str(elem.name, dest);
   }
@@ -51,7 +55,8 @@ class StoreOperationsTest : public QObject {
   void testWrapper();
 };
 
-void StoreOperationsTest::testStoreInsertAndFetch() {
+void StoreOperationsTest::testStoreInsertAndFetch()
+{
   Storage<TestElement, TestMarshaller, TestWatcher> store;
   TestElement elem1{"test id 1", "test name 1"},
       elem2{"test id 2", "test name 2"};
@@ -64,7 +69,8 @@ void StoreOperationsTest::testStoreInsertAndFetch() {
   QCOMPARE(elem1.name, retrieve1.name);
 }
 
-void StoreOperationsTest::testRemoveOperation() {
+void StoreOperationsTest::testRemoveOperation()
+{
   Storage<TestElement, TestMarshaller, TestWatcher> store;
   TestElement elem1{"test id 1", "test name 1"},
       elem2{"test id 2", "test name 2"};
@@ -82,7 +88,8 @@ void StoreOperationsTest::testRemoveOperation() {
   QCOMPARE(elem1.name, retrieve1.name);
 }
 
-void StoreOperationsTest::testUpdateOperation() {
+void StoreOperationsTest::testUpdateOperation()
+{
   Storage<TestElement, TestMarshaller, TestWatcher> store;
   TestElement elem1{"test id 1", "test name 1"},
       elem2{"test id 2", "test name 2"};
@@ -109,7 +116,8 @@ void StoreOperationsTest::testUpdateOperation() {
   QCOMPARE(elem3.name, retrieve3.name);
 }
 
-void StoreOperationsTest::testStrictUpdate() {
+void StoreOperationsTest::testStrictUpdate()
+{
   Storage<TestElement, TestMarshaller, TestWatcher> store;
   TestElement elem1{"test id 1", "test name 1"},
       elem2{"test id 2", "test name 2"};
@@ -130,7 +138,8 @@ void StoreOperationsTest::testStrictUpdate() {
   QCOMPARE(elem2.name, retrieve2.name);
 }
 
-void StoreOperationsTest::testElementsAccess() {
+void StoreOperationsTest::testElementsAccess()
+{
   Storage<TestElement, TestMarshaller, TestWatcher> store;
   TestElement elem1{"test id 1", "test name 1"},
       elem2{"test id 2", "test name 2"}, elem3{"test id 3", "test name 3"};
@@ -151,7 +160,8 @@ void StoreOperationsTest::testElementsAccess() {
   QCOMPARE(get_if.size(), 2);
 }
 
-void StoreOperationsTest::testWrapper() {
+void StoreOperationsTest::testWrapper()
+{
   std::shared_ptr<Storage<TestElement, TestMarshaller, TestWatcher,
                           DefaultTransactionManager,
                           DefaultDeleter<std::string, TestElement>>>

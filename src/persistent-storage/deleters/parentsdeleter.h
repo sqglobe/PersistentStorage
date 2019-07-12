@@ -13,13 +13,16 @@ class ParentsDeleter : public DefaultDeleter<K, V> {
 
  public:
   ParentsDeleter(std::shared_ptr<ChildContainer> child) :
-      mChild(std::move(child)) {}
+      mChild(std::move(child))
+  {
+  }
 
  public:
   std::optional<typename ParentDeleter::ValueType> operator()(
       dbstl::db_map<typename ParentDeleter::KeyType,
                     typename ParentDeleter::ValueType>& elements,
-      const typename ParentDeleter::KeyType& id) {
+      const typename ParentDeleter::KeyType& id)
+  {
     auto res = ParentDeleter::operator()(elements, id);
     if (res) {
       mChild->parentRemoved(*res);

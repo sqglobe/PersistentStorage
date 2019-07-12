@@ -12,6 +12,7 @@
 #include "eventlistenerholder.h"
 
 namespace prstorage {
+
 template <typename Element>
 class EventQueueWatcher {
  public:
@@ -61,7 +62,8 @@ class EventQueueWatcher {
 }  // namespace prstorage
 template <typename Element>
 prstorage::EventQueueWatcher<Element>::EventQueueWatcher() :
-    mEventQueue(std::make_shared<EventQueueType>()) {
+    mEventQueue(std::make_shared<EventQueueType>())
+{
   auto thread_func = [& is_finished = this->finished](
                          const std::shared_ptr<EventQueueType>& sh_ptr) {
     auto queue_ptr = std::weak_ptr<EventQueueType>(sh_ptr);
@@ -85,7 +87,8 @@ prstorage::EventQueueWatcher<Element>::EventQueueWatcher() :
 }
 
 template <typename Element>
-prstorage::EventQueueWatcher<Element>::~EventQueueWatcher() {
+prstorage::EventQueueWatcher<Element>::~EventQueueWatcher()
+{
   finished = true;
   if (mThread.joinable()) {
     mThread.join();
@@ -97,7 +100,8 @@ prstorage::EventListenerHolder<
     typename prstorage::EventQueueWatcher<Element>::EventQueueType>
 prstorage::EventQueueWatcher<Element>::appendListener(
     EnqueuedEvents event,
-    const EventQueueWatcher<Element>::CallbackType& callback) {
+    const EventQueueWatcher<Element>::CallbackType& callback)
+{
   if (event == EnqueuedEvents::ALL_EVENTS) {
     return EventListenerHolder(
         mEventQueue, {
@@ -123,7 +127,8 @@ prstorage::EventListenerHolder<
     typename prstorage::EventQueueWatcher<Element>::EventQueueType>
 prstorage::EventQueueWatcher<Element>::appendListener(
     unsigned char eventMask,
-    const EventQueueWatcher::CallbackType& callback) {
+    const EventQueueWatcher::CallbackType& callback)
+{
   std::list<typename EventListenerHolder<
       typename EventQueueWatcher<Element>::EventQueueType>::EventsInfo>
       handlers;
@@ -142,7 +147,8 @@ prstorage::EventQueueWatcher<Element>::appendListener(
 template <typename Element>
 void prstorage::EventQueueWatcher<Element>::appendPermanentListener(
     EnqueuedEvents event,
-    const EventQueueWatcher::CallbackType& callback) {
+    const EventQueueWatcher::CallbackType& callback)
+{
   if (event == EnqueuedEvents::ALL_EVENTS) {
     mEventQueue->appendListener(EnqueuedEvents::ADDED, callback);
     mEventQueue->appendListener(EnqueuedEvents::UPDATED, callback);
@@ -159,7 +165,8 @@ void prstorage::EventQueueWatcher<Element>::appendPermanentListener(
 template <typename Element>
 void prstorage::EventQueueWatcher<Element>::appendPermanentListener(
     unsigned char eventMask,
-    const EventQueueWatcher::CallbackType& callback) {
+    const EventQueueWatcher::CallbackType& callback)
+{
   std::initializer_list<EnqueuedEvents> events{
       EnqueuedEvents::ADDED, EnqueuedEvents::UPDATED, EnqueuedEvents::DELETED};
   for (auto event : events) {
@@ -170,27 +177,30 @@ void prstorage::EventQueueWatcher<Element>::appendPermanentListener(
 }
 
 template <typename Element>
-void prstorage::EventQueueWatcher<Element>::elementAdded(
-    const Element& element) {
+void prstorage::EventQueueWatcher<Element>::elementAdded(const Element& element)
+{
   mEventQueue->enqueue(EnqueuedEvents::ADDED, element);
 }
 
 template <typename Element>
 void prstorage::EventQueueWatcher<Element>::elementRemoved(
-    const Element& element) {
+    const Element& element)
+{
   mEventQueue->enqueue(EnqueuedEvents::DELETED, element);
 }
 
 template <typename Element>
 void prstorage::EventQueueWatcher<Element>::elementUpdated(
-    const Element& element) {
+    const Element& element)
+{
   mEventQueue->enqueue(EnqueuedEvents::UPDATED, element);
 }
 
 template <typename Element>
 auto prstorage::EventQueueWatcher<Element>::addEventHandler(
     EnqueuedEvents event,
-    const EventQueueWatcher::CallbackType& callback) {
+    const EventQueueWatcher::CallbackType& callback)
+{
   return std::make_pair(event, mEventQueue->appendListener(event, callback));
 }
 

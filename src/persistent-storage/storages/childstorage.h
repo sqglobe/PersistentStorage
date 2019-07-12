@@ -56,7 +56,9 @@ prstorage::
         ChildStorage(Db* db, Db* secondary, DbEnv* env, Deleter&& deleter) :
     ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::
         ParentContainer(db, env, std::move(deleter)),
-    mSecondaryDb(secondary), mSecondaryKeys(secondary, env) {}
+    mSecondaryDb(secondary), mSecondaryKeys(secondary, env)
+{
+}
 
 template <typename Element,
           typename Parent,
@@ -66,7 +68,8 @@ template <typename Element,
           typename Deleter>
 void prstorage::
     ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::
-        parentRemoved(const Parent& parent) {
+        parentRemoved(const Parent& parent)
+{
   auto deletedElements = this->getDeleter()(mSecondaryKeys, parent);
   std::for_each(std::cbegin(deletedElements), std::cend(deletedElements),
                 [this](const Element& element) {
@@ -82,7 +85,8 @@ template <typename Element,
           typename Deleter>
 void prstorage::
     ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::
-        parentRemoved(const std::vector<Parent>& parents) {
+        parentRemoved(const std::vector<Parent>& parents)
+{
   auto deletedElements = this->getDeleter()(mSecondaryKeys, parents);
   std::for_each(std::cbegin(deletedElements), std::cend(deletedElements),
                 [this](const Element& element) {

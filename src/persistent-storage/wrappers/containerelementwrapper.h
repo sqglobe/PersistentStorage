@@ -60,7 +60,8 @@ class ContainerElementWrapper {
    */
   element& get();
 
-  operator const int nested_class::*() const {
+  operator const int nested_class::*() const
+  {
     return mStateOk ? &nested_class::empty_field : nullptr;
   }
 
@@ -83,16 +84,21 @@ prstorage::ContainerElementWrapper<C>::ContainerElementWrapper(
     std::shared_ptr<C> container,
     const ContainerElementWrapper::element& elem) :
     mElement(make_element_copy(elem)),
-    mContainer(std::move(container)) {}
+    mContainer(std::move(container))
+{
+}
 
 template <typename C>
 prstorage::ContainerElementWrapper<C>::ContainerElementWrapper(
     ContainerElementWrapper<C>&& elem) noexcept :
     mElement(std::move(elem.mElement)),
-    mContainer(std::move(elem.mContainer)) {}
+    mContainer(std::move(elem.mContainer))
+{
+}
 
 template <typename C>
-bool prstorage::ContainerElementWrapper<C>::save() {
+bool prstorage::ContainerElementWrapper<C>::save()
+{
   try {
     return mContainer->strictUpdate(mElement);
   } catch (const std::exception&) {
@@ -102,7 +108,8 @@ bool prstorage::ContainerElementWrapper<C>::save() {
 }
 
 template <typename C>
-bool prstorage::ContainerElementWrapper<C>::remove() {
+bool prstorage::ContainerElementWrapper<C>::remove()
+{
   try {
     return mContainer->remove(get_id(mElement));
   } catch (const std::exception&) {
@@ -112,7 +119,8 @@ bool prstorage::ContainerElementWrapper<C>::remove() {
 }
 
 template <typename C>
-void prstorage::ContainerElementWrapper<C>::reload() {
+void prstorage::ContainerElementWrapper<C>::reload()
+{
   try {
     mElement = mContainer->get(get_id(mElement));
   } catch (const std::exception&) {
@@ -122,27 +130,32 @@ void prstorage::ContainerElementWrapper<C>::reload() {
 
 template <typename C>
 typename prstorage::ContainerElementWrapper<C>::element&
-prstorage::ContainerElementWrapper<C>::get() {
+prstorage::ContainerElementWrapper<C>::get()
+{
   return mElement;
 }
 
 template <typename T>
-T make_element_copy(const T& element) {
+T make_element_copy(const T& element)
+{
   return T(element);
 }
 
 template <typename T>
-std::shared_ptr<T> make_element_copy(const std::shared_ptr<T>& element) {
+std::shared_ptr<T> make_element_copy(const std::shared_ptr<T>& element)
+{
   return std::make_shared<T>(*element);
 }
 
 template <typename T>
-std::unique_ptr<T> make_element_copy(const std::unique_ptr<T>& element) {
+std::unique_ptr<T> make_element_copy(const std::unique_ptr<T>& element)
+{
   return std::make_unique<T>(*element);
 }
 
 template <typename T>
-T* make_element_copy(T* element) {
+T* make_element_copy(T* element)
+{
   return new T(*element);
 }
 #endif  // CONTAINERELEMENTWRAPPER_H

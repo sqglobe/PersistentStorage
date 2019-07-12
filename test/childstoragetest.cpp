@@ -14,7 +14,8 @@ struct TestElement {
   std::string name;
 };
 
-std::string get_id(const TestElement& elem) {
+std::string get_id(const TestElement& elem)
+{
   return elem.id;
 }
 
@@ -27,17 +28,20 @@ class TestWatcher {
 
 class TestMarshaller {
  public:
-  static void restore(TestElement& elem, const void* src) {
+  static void restore(TestElement& elem, const void* src)
+  {
     src = restore_str(elem.id, src);
     src = restore_str(elem.name, src);
   }
-  static u_int32_t size(const TestElement& element) {
+  static u_int32_t size(const TestElement& element)
+  {
     u_int32_t size = 0;
     size += sizeof(std::string::size_type) + element.id.length();
     size += sizeof(std::string::size_type) + element.name.length();
     return size;
   }
-  static void store(void* dest, const TestElement& elem) {
+  static void store(void* dest, const TestElement& elem)
+  {
     dest = save_str(elem.id, dest);
     dest = save_str(elem.name, dest);
   }
@@ -46,7 +50,8 @@ class TestMarshaller {
 int get_dest_secdb_callback(Db* /* secondary */,
                             const Dbt* /* key */,
                             const Dbt* data,
-                            Dbt* result) {
+                            Dbt* result)
+{
   TestElement el;
   TestMarshaller::restore(el, data->get_data());
 
@@ -83,7 +88,8 @@ class ChildStorageTest : public QObject {
   Db* parent_db;
 };
 
-ChildStorageTest::ChildStorageTest() {
+ChildStorageTest::ChildStorageTest()
+{
   dbstl::dbstl_startup();
   penv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
   auto res = penv->open(".",
@@ -125,7 +131,8 @@ ChildStorageTest::ChildStorageTest() {
   db->associate(nullptr, secdb, get_dest_secdb_callback, DB_CREATE);
 }
 
-void ChildStorageTest::testStorageCreation() {
+void ChildStorageTest::testStorageCreation()
+{
   using ChildContainerType =
       ChildStorage<TestElement, TestElement, TestMarshaller, TestWatcher>;
   using ParentDeleterType =
@@ -153,7 +160,8 @@ void ChildStorageTest::testStorageCreation() {
   QVERIFY(child_container->has("child id 2"));
 }
 
-void ChildStorageTest::testSeveralChilds() {
+void ChildStorageTest::testSeveralChilds()
+{
   using ChildContainerType =
       ChildStorage<TestElement, TestElement, TestMarshaller, TestWatcher>;
   using ParentDeleterType =
@@ -183,7 +191,8 @@ void ChildStorageTest::testSeveralChilds() {
   QVERIFY(child_container->has("child id 2"));
 }
 
-void ChildStorageTest::testSeveralLevelsOfInheritance() {
+void ChildStorageTest::testSeveralLevelsOfInheritance()
+{
   using ChildContainerType =
       ChildStorage<TestElement, TestElement, TestMarshaller, TestWatcher>;
   using KeyType = decltype(get_id(std::declval<TestElement>()));
@@ -258,7 +267,8 @@ void ChildStorageTest::testSeveralLevelsOfInheritance() {
   QVERIFY(child_container->has("child id 2"));
 }
 
-void ChildStorageTest::testWrapperInChildContainer() {
+void ChildStorageTest::testWrapperInChildContainer()
+{
   using ChildContainerType =
       ChildStorage<TestElement, TestElement, TestMarshaller, TestWatcher>;
   using ParentDeleterType =
@@ -289,12 +299,14 @@ void ChildStorageTest::testWrapperInChildContainer() {
   QCOMPARE(child_container->get("child id 1").name, "test");
 }
 
-void ChildStorageTest::cleanup() {
+void ChildStorageTest::cleanup()
+{
   parent_db->truncate(nullptr, nullptr, 0);
   db->truncate(nullptr, nullptr, 0);
 }
 
-void ChildStorageTest::cleanupTestCase() {
+void ChildStorageTest::cleanupTestCase()
+{
   dbstl::dbstl_exit();
   if (penv)
     delete penv;
