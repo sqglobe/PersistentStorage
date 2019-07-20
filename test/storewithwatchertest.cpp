@@ -145,7 +145,7 @@ void StoreWithWatcherTest::testAddWatcher()
   auto parentAddHandler = [&countParentCalled](EnqueuedEvents event,
                                                const TestElement& elem) {
     QCOMPARE(event, EnqueuedEvents::ADDED);
-    QCOMPARE(elem.id, "parent id 1");
+    QCOMPARE(elem.id, std::string("parent id 1"));
     countParentCalled++;
   };
 
@@ -153,7 +153,7 @@ void StoreWithWatcherTest::testAddWatcher()
   auto childAddHandler = [&countChildCalled](EnqueuedEvents event,
                                              const TestElement& elem) {
     QCOMPARE(event, EnqueuedEvents::ADDED);
-    QCOMPARE(elem.id, "child id 1");
+    QCOMPARE(elem.id, std::string("child id 1"));
     countChildCalled++;
   };
 
@@ -199,7 +199,7 @@ void StoreWithWatcherTest::testRemoveParent()
   auto parentRemoveHandler = [&countParentCalled](EnqueuedEvents event,
                                                   const TestElement& elem) {
     QCOMPARE(event, EnqueuedEvents::DELETED);
-    QCOMPARE(elem.id, "parent id 1");
+    QCOMPARE(elem.id, std::string("parent id 1"));
     countParentCalled++;
   };
 
@@ -207,7 +207,7 @@ void StoreWithWatcherTest::testRemoveParent()
   auto childRemoveHandler = [&countChildCalled](EnqueuedEvents event,
                                                 const TestElement& elem) {
     QCOMPARE(event, EnqueuedEvents::DELETED);
-    QCOMPARE(elem.id, "child id 1");
+    QCOMPARE(elem.id, std::string("child id 1"));
     countChildCalled++;
   };
 

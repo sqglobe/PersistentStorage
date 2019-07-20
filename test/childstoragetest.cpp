@@ -296,7 +296,7 @@ void ChildStorageTest::testWrapperInChildContainer()
 
   QVERIFY(wrapper.save());
 
-  QCOMPARE(child_container->get("child id 1").name, "test");
+  QCOMPARE(child_container->get("child id 1").name, std::string("test"));
 }
 
 void ChildStorageTest::cleanup()

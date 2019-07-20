@@ -10,36 +10,25 @@
 #include "defaulttransactionmanager.h"
 #include "persistent-storage/deleters/defaultdeleter.h"
 #include "persistent-storage/wrappers/transparentcontainerelementwrapper.h"
-/*
- * Needed realisation of functions:
- *  std::string get_id(ConstElement element );
- *
- */
 
+namespace prstorage {
 /**
- * Шаблонный класс, который служит для хранения различных объектов: диалогов,
- * контактов и пр. Обеспечивает добавление, удаление элементов. Поиск по
- * идентификатору, поиск по предикату и пр. Так же обеспечивается возможность
- * добавить обработчики событий о добавлении/удалении/изменении элементов.
+ * Шаблонный класс-коонтейнер, который обчеспечивает сохранение данных на диск.
  *
- * Обеспечивает способ получения класса-обертки элемента. При создании обертки
- * хранимое значение элемента копируется, так что изменения выполненные через
- * прокси-класс не затрагивают сам контейнер. Обертка так же реализует
- * прозрачный доступ к элементам к элементам оборачиваемого объекта.
- * Оборачиваемое значение сохраняется только при вызове метода обертки.
+ * Данные хранятся в виде ключ/значение. Типом значения является параметр
+ * шаблона Element, а для получения ключа должна быть определена свободная
+ * функция get_id(const Element&).
  *
- * Необходимость создания такого прокси-класса - транзакционность изменений
- * объектов, для сохранения изменений нет надобности хранить изменяемое значение
- * и класс-контейнер
- *
- * @param Element - тип хранимого элемента
- * @param ConstElement - константный тип хранимого элемента (особенно актуально
- * при применении указателей) для передачи, например, в наблюдатели при
- * наступлении события изменения элемента.
- *
- * Для хранимых элементов необходимо реализовать свободную функцию
- *        std::string get_id(ConstElement element );
- * эта функция должна возвращать идентификатор объекта element.
+ * Параметры шаблона:
+ * @tparam Element тип хранимого элемента
+ * @tparam Marshaller тип, который обеспечивает функцилонал для
+ * маршалинга/демаршалинга элементов Element в массив байт и обратно
+ * @tparam Watcher тип, который предоставляет функции для уведомления о событиях
+ * изменения элементов контейнера
+ * @tparam TxManager класс, который предоставляет функции для выполнения
+ * транзакций - пример DefaultTransactionManager
+ * @tparam Deleter отвечает за удаление элемента из контейнера, пример -
+ * DefaultDeleter
  *
  * Пример Marshaller:
  * class ContactMarshaller {
@@ -49,15 +38,14 @@
  *     static void store(void* dest, const std::shared_ptr<Contact>& elem);
  *  };
  *
- * Пример Watcher:
- * class TestWatcher{
+ * При добавлении/удалении/обновлении элемента, контейнер использует функции,
+ * которые предоставляет Watcher, для уведомления о событии. Необходимо
+ * определение в этом классе следующих функций: class TestWatcher{ protected:
  *   void elementAdded(const Element &);
  *   void elementRemoved(const Element &);
  *   void elementUpdated(const Element &);
  * };
  */
-
-namespace prstorage {
 template <
     typename Element,
     typename Marshaller,
@@ -77,8 +65,27 @@ class Storage : public std::enable_shared_from_this<
   using TransactionManager = TxManager;
 
  public:
+  /**
+   * @brief Контруктор класса
+   * @param db экземпляр базы данных Berkeley DB, в котором хранятся элементы
+   * контейнера
+   * @param env экземпляр окружения для db
+   * @param deleter объект, который выполняет удаление элементов из БД
+   */
   Storage(Db* db, DbEnv* env, Deleter&& deleter = Deleter());
+
+  /**
+   * @brief Контруктор класса
+   * @param db экземпляр базы данных Berkeley DB, в котором хранятся элементы
+   * контейнера
+   * @param deleter объект, который выполняет удаление элементов из БД
+   */
   explicit Storage(Db* db, Deleter&& deleter = Deleter());
+
+  /**
+   * @brief Контруктор класса
+   * @param deleter объект, который выполняет удаление элементов из БД
+   */
   explicit Storage(Deleter&& deleter = Deleter());
 
  public:
@@ -123,11 +130,41 @@ class Storage : public std::enable_shared_from_this<
   wrapper_type wrapper(const key& id);
 
  public:
+  /**
+   * @brief Возвращает объект по заданному ключу, в случае неудачного
+   * поиска выбрасывается исключение std::range_error
+   * @param id ключ, по которому осуществляется поиск
+   * @return элемент, который соответствует ключчу
+   * @throws std::range_error при отсутствии ключа
+   */
   element get(const key& id) const;
+
+  /**
+   * @brief Проверяет наличие элемента с указанным ключем в хранилище
+   * @param id ключ, для которого проверяется наличие элемента
+   * @return флаг наличия элемента в хранилище
+   */
   bool has(const key& id) const;
+
+  /**
+   * @brief Извлекает из хранилища все элементы и возвращает в виде std::vector
+   * @return std::vector с элементами массива
+   */
   std::vector<element> getAllElements() const;
+
+  /**
+   * @brief Возвращает количество элементов в хранилище
+   * @return количество элементов в храниоище
+   */
   int size() const noexcept;
 
+  /**
+   * @brief Возвращает список элементов, которые удовлетворяют предикату
+   * @param p предикат, который принимает ссылку на хранимый элемент и
+   * возвращает: true - элемент должен быть добавлен в результирующее множество
+   * false - нет
+   * @return элементы, удовлетворяющие предикату
+   */
   std::vector<element> get_if(std::function<bool(const element&)> p) const;
 
  protected:
