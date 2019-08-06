@@ -4,8 +4,14 @@
 #include <db_cxx.h>
 
 namespace prstorage {
+/**
+ * Менеджер транзакций. Начинает и завершает транзакцию
+ */
 class DefaultTransactionManager {
  public:
+  /**
+   * @brief Конструктор класса, начинает транзакцию
+   */
   DefaultTransactionManager(DbEnv* env);
   ~DefaultTransactionManager();
   void commit();

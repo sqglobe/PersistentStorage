@@ -4,12 +4,14 @@ find_package (Threads REQUIRED)
 set(FILES_SOURCES
   persistent-storage/utils/store_primitives.cpp
   persistent-storage/storages/defaulttransactionmanager.cpp
+  persistent-storage/storages/registertransactionmanager.cpp
 )
 
 set(FILES_HEADERS
   persistent-storage/storages/storage.h
   persistent-storage/storages/childstorage.h
   persistent-storage/storages/defaulttransactionmanager.h
+  persistent-storage/storages/registertransactionmanager.h
 
   persistent-storage/deleters/defaultdeleter.h
   persistent-storage/deleters/parentsdeleter.h

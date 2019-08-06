@@ -151,13 +151,13 @@ void StoreOperationsTest::testElementsAccess()
 
   auto elems = store.getAllElements();
 
-  QCOMPARE(3, elems.size());
+  QCOMPARE(static_cast<std::size_t>(3), elems.size());
 
   auto get_if = store.get_if([](const TestElement& el) {
     return el.name == "test name 1" || el.name == "test name 3";
   });
 
-  QCOMPARE(get_if.size(), 2);
+  QCOMPARE(get_if.size(), static_cast<std::size_t>(2));
 }
 
 void StoreOperationsTest::testWrapper()
@@ -179,7 +179,7 @@ void StoreOperationsTest::testWrapper()
   wrapper->name = "new name 1";
   QVERIFY(wrapper.save());
 
-  QCOMPARE(store->get("test id 1").name, "new name 1");
+  QCOMPARE(store->get("test id 1").name, std::string("new name 1"));
 
   wrapper.remove();
 
@@ -189,11 +189,11 @@ void StoreOperationsTest::testWrapper()
 
   store->update({"test id 2", "new name 2"});
 
-  QCOMPARE(wrapper2->name, "test name 2");
+  QCOMPARE(wrapper2->name, std::string("test name 2"));
 
   wrapper2.reload();
 
-  QCOMPARE(wrapper2->name, "new name 2");
+  QCOMPARE(wrapper2->name, std::string("new name 2"));
 }
 
 QTEST_APPLESS_MAIN(StoreOperationsTest)
