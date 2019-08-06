@@ -31,5 +31,8 @@ configure_file(version.h.in
 set(FILES_HEADERS ${FILES_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/version.h)
 
 # Install headers
-install(FILES ${FILES_HEADERS}
+#install(FILES ${FILES_HEADERS}
+#  DESTINATION "${INSTALL_INCLUDE_DIR}/${LIBRARY_FOLDER}" )
+
+install(DIRECTORY persistent-storage/
   DESTINATION "${INSTALL_INCLUDE_DIR}/${LIBRARY_FOLDER}" )
