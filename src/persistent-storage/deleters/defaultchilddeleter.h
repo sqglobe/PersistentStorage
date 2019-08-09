@@ -11,6 +11,7 @@ struct DefaultChildDeleter : public D {
   using ParentType = P;
   using ParentIdType = decltype(get_id(std::declval<P>()));
   using ParentDeleter = D;
+  using D::operator();
 
   template <typename... Args>
   DefaultChildDeleter(Args&&... args) : D(std::forward<Args>(args)...)
