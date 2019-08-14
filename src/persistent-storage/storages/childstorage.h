@@ -70,7 +70,8 @@ void prstorage::
     ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::
         parentRemoved(const Parent& parent)
 {
-  auto deletedElements = this->getDeleter()(mSecondaryKeys, parent);
+  auto deletedElements =
+      this->getDeleter().removeChilds(mSecondaryKeys, parent);
   std::for_each(std::cbegin(deletedElements), std::cend(deletedElements),
                 [this](const Element& element) {
                   ParentContainer::watcher_type::elementRemoved(element);
@@ -87,7 +88,8 @@ void prstorage::
     ChildStorage<Element, Parent, Marshaller, Watcher, TxManager, Deleter>::
         parentRemoved(const std::vector<Parent>& parents)
 {
-  auto deletedElements = this->getDeleter()(mSecondaryKeys, parents);
+  auto deletedElements =
+      this->getDeleter().removeChilds(mSecondaryKeys, parents);
   std::for_each(std::cbegin(deletedElements), std::cend(deletedElements),
                 [this](const Element& element) {
                   ParentContainer::watcher_type::elementRemoved(element);

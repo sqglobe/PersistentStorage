@@ -11,14 +11,13 @@ struct DefaultChildDeleter : public D {
   using ParentType = P;
   using ParentIdType = decltype(get_id(std::declval<P>()));
   using ParentDeleter = D;
-  using D::operator();
 
   template <typename... Args>
   DefaultChildDeleter(Args&&... args) : D(std::forward<Args>(args)...)
   {
   }
 
-  std::vector<typename DefaultChildDeleter::ValueType> operator()(
+  std::vector<typename DefaultChildDeleter::ValueType> removeChilds(
       dbstl::db_multimap<ParentIdType, typename DefaultChildDeleter::ValueType>&
           secondary,
       const ParentType& parent)
@@ -32,7 +31,7 @@ struct DefaultChildDeleter : public D {
     return deletedElements;
   }
 
-  std::vector<typename DefaultChildDeleter::ValueType> operator()(
+  std::vector<typename DefaultChildDeleter::ValueType> removeChilds(
       dbstl::db_multimap<ParentIdType, typename DefaultChildDeleter::ValueType>&
           secondary,
       const std::vector<ParentType>& parents)
