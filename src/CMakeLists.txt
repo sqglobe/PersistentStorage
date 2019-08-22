@@ -12,6 +12,7 @@ set(FILES_HEADERS
   persistent-storage/storages/childstorage.h
   persistent-storage/storages/defaulttransactionmanager.h
   persistent-storage/storages/registertransactionmanager.h
+  persistent-storage/storages/simplestorage.h
 
   persistent-storage/deleters/defaultdeleter.h
   persistent-storage/deleters/parentsdeleter.h
@@ -27,6 +28,8 @@ set(FILES_HEADERS
 
 
   persistent-storage/utils/store_primitives.h
+
+
 )
 
 add_library(${LIBRARY_NAME} ${FILES_SOURCES} ${FILES_HEADERS})
